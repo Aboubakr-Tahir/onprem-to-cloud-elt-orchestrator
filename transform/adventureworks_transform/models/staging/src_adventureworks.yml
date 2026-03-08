@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: azure_silver
+    database: ADVENTUREWORKS_DW
+    schema: SILVER
+    tables:
+      - name: Customer
+      - name: Address
+      - name: CustomerAddress
+      - name: Product
+      - name: ProductCategory
+      - name: ProductDescription
+      - name: ProductModel
+      - name: ProductModelProductDescription
+      - name: SalesOrderDetail
+      - name: SalesOrderHeader

@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql_server_2019
+    env_file:
+      - ../../.env
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql # Tes données restent ici, intactes !
+    networks:
+      - azure_etl_network
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
+    external: true
+    name: azure_etl_sqlserver-data
+
+# On déclare le réseau externe qu'on vient de créer
+networks:
+  azure_etl_network:
+    external: true

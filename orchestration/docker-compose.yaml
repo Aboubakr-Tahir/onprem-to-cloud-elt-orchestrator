@@ -1,0 +1,91 @@
+version: "3.8"
+
+# --- Configuration commune pour tous les services Airflow ---
+x-airflow-common: &airflow-common #image: apache/airflow:2.10.0
+  build: .
+  env_file:
+    - ../.env
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__TEST_CONNECTION: "Enabled"
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ../transform:/opt/airflow/transform #
+  user: "${AIRFLOW_UID:-50000}:0"
+  networks:
+    - azure_etl_network # On se connecte au pont réseau !
+
+services:
+  # 1. La base de données interne d'Airflow (obligatoire)
+  postgres:
+    image: postgres:13
+    container_name: airflow_postgres
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - azure_etl_network
+
+  # 2. Le script d'initialisation (crée les tables et l'utilisateur admin)
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow_init
+    command: version
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_UPGRADE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # 3. L'interface web
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  # 4. Le cerveau (Scheduler) qui lance les DAGs
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow_scheduler
+    command: scheduler
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow-db-volume:
+
+networks:
+  azure_etl_network:
+    external: true # On indique que ce réseau a été créé manuellement

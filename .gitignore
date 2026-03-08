@@ -1,0 +1,37 @@
+# ============================================
+# SECRETS - NE JAMAIS COMMITER
+# ============================================
+.env
+*.env
+.env.*
+
+# ============================================
+# LOGS
+# ============================================
+orchestration/logs/
+transform/logs/
+transform/adventureworks_transform/logs/
+*.log
+
+# ============================================
+# DBT
+# ============================================
+transform/adventureworks_transform/target/
+transform/adventureworks_transform/dbt_packages/
+transform/adventureworks_transform/.user.yml
+
+# ============================================
+# PYTHON
+# ============================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ============================================
+# IDE
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
