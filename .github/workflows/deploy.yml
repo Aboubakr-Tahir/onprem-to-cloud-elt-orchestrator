@@ -1,0 +1,30 @@
+name: Continuous Deployment to Azure
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "🚀 Début du déploiement automatique..."
+            cd ~/onprem-to-cloud-elt-orchestrator
+
+            git fetch origin
+            git reset --hard origin/main
+
+            cd orchestration/
+            docker compose up -d --build
+
+            echo "✅ Félicitations Aboubakr, ton code est à jour sur Azure !"
