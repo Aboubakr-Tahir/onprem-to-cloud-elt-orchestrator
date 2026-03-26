@@ -1,7 +1,6 @@
 version: "3.8"
 
-# --- Configuration commune pour tous les services Airflow ---
-x-airflow-common: &airflow-common #image: apache/airflow:2.10.0
+x-airflow-common: &airflow-common
   build: .
   env_file:
     - ../.env
@@ -14,13 +13,12 @@ x-airflow-common: &airflow-common #image: apache/airflow:2.10.0
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
-    - ../transform:/opt/airflow/transform #
+    - ../transform:/opt/airflow/transform
   user: "${AIRFLOW_UID:-50000}:0"
   networks:
-    - azure_etl_network # On se connecte au pont réseau !
+    - azure_etl_network
 
 services:
-  # 1. La base de données interne d'Airflow (obligatoire)
   postgres:
     image: postgres:13
     container_name: airflow_postgres
@@ -38,7 +36,6 @@ services:
     networks:
       - azure_etl_network
 
-  # 2. Le script d'initialisation (crée les tables et l'utilisateur admin)
   airflow-init:
     <<: *airflow-common
     container_name: airflow_init
@@ -51,7 +48,6 @@ services:
       postgres:
         condition: service_healthy
 
-  # 3. L'interface web
   airflow-webserver:
     <<: *airflow-common
     container_name: airflow_webserver
@@ -71,7 +67,6 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  # 4. Le cerveau (Scheduler) qui lance les DAGs
   airflow-scheduler:
     <<: *airflow-common
     container_name: airflow_scheduler
@@ -88,4 +83,4 @@ volumes:
 
 networks:
   azure_etl_network:
-    external: true # On indique que ce réseau a été créé manuellement
+    external: true

@@ -12,7 +12,7 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - sqlserver-data:/var/opt/mssql # Tes données restent ici, intactes !
+      - sqlserver-data:/var/opt/mssql
     networks:
       - azure_etl_network
     restart: unless-stopped
@@ -22,7 +22,6 @@ volumes:
     external: true
     name: azure_etl_sqlserver-data
 
-# On déclare le réseau externe qu'on vient de créer
 networks:
   azure_etl_network:
     external: true

@@ -44,14 +44,14 @@ with DAG(
 ) as dag:
 
     for table in TABLES:
-        # Tâche 1 : Ingestion vers Azure
+        
         ingest_azure = PythonOperator(
             task_id=f'ingest_{table}_to_azure',
             python_callable=extract_and_load_azure,
             op_kwargs={'table_name': table}
         )
 
-        # Tâche 2 : Chargement Azure vers Snowflake (Layer Silver)
+        
         copy_to_snowflake = SnowflakeOperator(
             task_id=f'load_{table}_to_snowflake',
             snowflake_conn_id='snowflake_conn',
@@ -65,5 +65,5 @@ with DAG(
             """
         )
 
-        # La dépendance : Ingestion Azure d'abord, puis Snowflake
+        
         ingest_azure >> copy_to_snowflake
