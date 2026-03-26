@@ -43,6 +43,8 @@ Traditional VPNs or open ports expose on-premise environments to attacks. To cir
 
 Using Python and Airflow's `MsSqlHook`, the data from the AdventureWorks DB is queried iteratively. Once extracted, the `WasbHook` buffers and streams the raw tables directly into **Azure Blob Storage (Bronze Layer)** to act as our immutable data lake.
 
+![Architecture Diagram](images/airflow_dashboard.png)
+
 ### 3. Silver Layer (Cloud Data Warehouse)
 
 Instead of processing raw files locally, **Snowflake** takes over the compute. Airflow triggers Snowflake tasks that leverage the highly efficient `COPY INTO` command to ingest data from Azure External Stages into raw staging tables. Access between Snowflake and Azure is tightly controlled via Azure Active Directory and **Role-Based Access Control (RBAC)**.
@@ -54,6 +56,8 @@ The Silver layer is still in 3NF (3rd Normal Form), so we trigger **dbt Core** w
 ### 5. Consumption (Power BI)
 
 **Power BI** is configured to query the Snowflake Gold layer directly, seamlessly propagating metrics for business interactive dashboards.
+
+![Architecture Diagram](images/bi_dashboard.png)
 
 ### 6. FinOps & DataOps Strategy
 
